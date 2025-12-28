@@ -1,0 +1,216 @@
+# Example subscriptions configuration
+# Copy this file to subscriptions.yaml and modify
+
+subscriptions:
+  # Subscription 1: Computers in Berlin
+  - id: sub_001
+    email: user1@example.com
+    enabled: true
+
+    # Filters
+    filters:
+      categories:
+        - computers
+        - electronics
+
+      location:
+        city: Berlin
+        districts:
+          - Kreuzberg
+          - Friedrichshain
+          - Mitte
+        radius_km: 5  # From city center
+
+      keywords:
+        include:
+          - laptop
+          - monitor
+          - printer
+          - computer
+          - tastatur  # keyboard in German
+          - maus  # mouse in German
+
+        exclude:
+          - defekt  # broken
+          - kaputt  # broken
+
+    # Notification settings
+    notification:
+      type: email  # email or rss
+      frequency: immediate  # immediate, daily, weekly
+      max_ads_per_notification: 10
+
+    # RSS feed URL (if type is rss)
+    # rss_url: /rss/sub_001.xml
+
+  # Subscription 2: Furniture in Munich
+  - id: sub_002
+    email: user2@example.com
+    enabled: true
+
+    filters:
+      categories:
+        - furniture
+
+      location:
+        city: München
+        radius_km: 10
+
+      keywords:
+        include:
+          - sofa
+          - schrank  # closet
+          - tisch  # table
+          - stuhl  # chair
+          - bett  # bed
+
+    notification:
+      type: email
+      frequency: daily
+      time: "09:00"  # Send at 9 AM
+      max_ads_per_notification: 20
+
+  # Subscription 3: Books anywhere in Germany
+  - id: sub_003
+    email: user3@example.com
+    enabled: true
+
+    filters:
+      categories:
+        - books
+
+      # No location filter = all locations
+
+      keywords:
+        include:
+          - roman  # novel
+          - krimi  # thriller
+          - fantasy
+          - sachbuch  # non-fiction
+
+    notification:
+      type: email
+      frequency: weekly
+      day: monday  # Send on Mondays
+      time: "10:00"
+      max_ads_per_notification: 50
+
+  # Subscription 4: Electronics in Hamburg (RSS only)
+  - id: sub_004
+    enabled: true
+
+    filters:
+      categories:
+        - computers
+        - electronics
+
+      location:
+        city: Hamburg
+
+    notification:
+      type: rss
+      # RSS feed will be available at /rss/sub_004.xml
+
+  # Subscription 5: Kids items with specific conditions
+  - id: sub_005
+    email: family@example.com
+    enabled: true
+
+    filters:
+      categories:
+        - kids
+        - sports
+
+      location:
+        city: Köln
+        radius_km: 15
+
+      keywords:
+        include:
+          - kinderwagen  # stroller
+          - spielzeug  # toys
+          - kleidung  # clothing
+          - fahrrad  # bicycle
+
+      # Only include ads with images
+      must_have_images: true
+
+      # Minimum description length
+      min_description_length: 50
+
+    notification:
+      type: email
+      frequency: immediate
+      max_ads_per_notification: 5
+
+      # Custom email template
+      template: family_friendly
+
+  # Subscription 6: General search with advanced filters
+  - id: sub_006
+    email: power_user@example.com
+    enabled: true
+
+    filters:
+      # Multiple cities
+      location:
+        cities:
+          - Berlin
+          - Potsdam
+          - Brandenburg
+        radius_km: 20
+
+      # All categories
+      categories: all
+
+      keywords:
+        include:
+          - vintage
+          - retro
+          - antik  # antique
+
+        # Exclude commercial/spam keywords
+        exclude:
+          - verkaufen  # selling
+          - preis  # price
+          - euro
+          - versand  # shipping
+
+      # Advanced filters
+      posted_within_hours: 24  # Only ads posted in last 24 hours
+      must_have_images: true
+      exclude_duplicates: true
+
+    notification:
+      type: email
+      frequency: immediate
+      max_ads_per_notification: 15
+
+      # Include map in email
+      include_map: true
+
+# Email templates
+templates:
+  default:
+    subject: "Neue Anzeigen: {count} neue kostenlose Artikel"
+    header: "Hallo! Hier sind neue Anzeigen basierend auf Ihren Suchkriterien:"
+    footer: "Um Benachrichtigungen zu ändern, besuchen Sie: {settings_url}"
+
+  family_friendly:
+    subject: "🎁 Neue kostenlose Artikel für Kinder"
+    header: "Hallo Familie! Wir haben neue Artikel für Sie gefunden:"
+    footer: "Viel Spaß beim Stöbern!"
+
+# RSS feed settings per subscription
+rss_settings:
+  # Default TTL (Time To Live) in minutes
+  default_ttl: 60
+
+  # Maximum items in feed
+  max_items: 100
+
+  # Include images in RSS
+  include_images: true
+
+  # Include full description
+  full_description: true

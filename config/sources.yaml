@@ -1,0 +1,163 @@
+# Configuration for classified ads sources
+
+sources:
+  # eBay Kleinanzeigen (Germany)
+  - name: ebay_kleinanzeigen
+    enabled: true
+    country: DE
+    base_url: https://www.ebay-kleinanzeigen.de
+
+    # Search parameters
+    search:
+      # Search for free items (zu verschenken)
+      query: "/s-zu-verschenken/c192"
+      pagination: "?seite={page}"
+      max_pages: 10
+
+    # CSS selectors for parsing
+    selectors:
+      # Listing page
+      listing_container: "article.aditem"
+      listing_link: "a.ellipsis"
+      listing_title: "a.ellipsis"
+      listing_location: "div.aditem-main--top--left"
+      listing_date: "div.aditem-main--top--right"
+
+      # Detail page
+      detail_title: "h1#viewad-title"
+      detail_description: "p#viewad-description-text"
+      detail_location: "span#viewad-locality"
+      detail_posted_date: "span#viewad-extra-info"
+      detail_images: "div.galleryimage-element img"
+      detail_contact: "button#viewad-contact"
+
+    # Category mapping (eBay categories -> Our categories)
+    category_mapping:
+      "Elektronik": "computers"
+      "Computer": "computers"
+      "Möbel & Wohnen": "furniture"
+      "Kleidung & Accessoires": "clothing"
+      "Bücher & Zeitschriften": "books"
+      "Sport & Fitness": "sports"
+      "Baby & Kind": "kids"
+      "Haushaltsgeräte": "appliances"
+      "Heimwerken": "construction"
+      "Garten": "garden"
+
+  # Craigslist (International)
+  - name: craigslist
+    enabled: false
+    country: US
+    base_url: https://berlin.craigslist.org
+
+    search:
+      query: "/d/free-stuff/search/zip"
+      pagination: "?s={offset}"
+      max_pages: 10
+
+    selectors:
+      listing_container: "li.result-row"
+      listing_link: "a.result-title"
+      listing_title: "a.result-title"
+      listing_location: "span.result-hood"
+      listing_date: "time.result-date"
+
+      detail_title: "span#titletextonly"
+      detail_description: "section#postingbody"
+      detail_location: "div.mapaddress"
+      detail_posted_date: "time.date"
+      detail_images: "div.slide img"
+
+    category_mapping:
+      "electronics": "computers"
+      "furniture": "furniture"
+      "clothing": "clothing"
+      "books": "books"
+      "sporting": "sports"
+      "baby+kids": "kids"
+      "appliances": "appliances"
+      "tools": "construction"
+
+  # Kleinanzeigen.de (successor of eBay Kleinanzeigen)
+  - name: kleinanzeigen
+    enabled: false
+    country: DE
+    base_url: https://www.kleinanzeigen.de
+
+    search:
+      query: "/s-verschenken-tauschen/c192"
+      pagination: "?pageNum={page}"
+      max_pages: 10
+
+    selectors:
+      # Similar to eBay Kleinanzeigen
+      listing_container: "article.aditem"
+      listing_link: "a.ellipsis"
+      listing_title: "a.ellipsis"
+      listing_location: "div.aditem-main--top--left"
+
+  # Shpock (Mobile marketplace)
+  - name: shpock
+    enabled: false
+    country: DE
+    base_url: https://www.shpock.com
+
+    search:
+      query: "/de-de/search?q=verschenken"
+      pagination: "&page={page}"
+      max_pages: 10
+
+    selectors:
+      listing_container: "div.ProductListItem"
+      listing_link: "a.ProductListItem__link"
+      listing_title: "h3.ProductListItem__title"
+
+  # Nebenan.de (Neighborhood platform)
+  - name: nebenan
+    enabled: false
+    country: DE
+    base_url: https://nebenan.de
+
+    # Note: Requires authentication
+    auth_required: true
+
+    search:
+      query: "/market/offers"
+      pagination: "?page={page}"
+
+  # Facebook Marketplace (requires API access)
+  - name: facebook_marketplace
+    enabled: false
+    country: US
+    base_url: https://www.facebook.com/marketplace
+
+    # Note: Difficult to scrape, may require API
+    requires_api: true
+    api_access_token: ""
+
+# Global settings for all sources
+global:
+  # Request headers
+  headers:
+    User-Agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+    Accept-Language: "de-DE,de;q=0.9,en;q=0.8"
+
+  # Rate limiting (applies to all sources)
+  rate_limit:
+    requests_per_minute: 20
+    requests_per_hour: 500
+
+  # Retry settings
+  retry:
+    max_attempts: 3
+    backoff_factor: 2  # Exponential backoff
+
+  # Timeout
+  timeout: 30  # seconds
+
+# Keywords to identify free items (in different languages)
+free_keywords:
+  de: ["verschenken", "gratis", "kostenlos", "abzugeben", "zu verschenken"]
+  en: ["free", "giveaway", "free stuff", "for free"]
+  fr: ["gratuit", "à donner"]
+  es: ["gratis", "regalar"]

@@ -1,0 +1,141 @@
+# Main configuration file for Classified Ads Indexer
+
+# Database configuration
+database:
+  type: sqlite  # sqlite or postgresql
+  # SQLite
+  path: data/ads.db
+
+  # PostgreSQL (uncomment if using)
+  # host: localhost
+  # port: 5432
+  # database: classified_ads
+  # username: postgres
+  # password: your_password
+
+# Crawler settings
+crawler:
+  # User agent for HTTP requests
+  user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+  # Request settings
+  timeout: 30  # seconds
+  retry_attempts: 3
+  retry_delay: 5  # seconds
+
+  # Rate limiting
+  delay_between_requests: 2  # seconds
+  max_concurrent_requests: 5
+
+  # Respect robots.txt
+  obey_robots_txt: true
+
+  # Storage
+  download_images: false
+  images_directory: data/images/
+
+# Classifier settings
+classifier:
+  model_path: data/models/classifier.pkl
+
+  # Categories
+  categories:
+    - computers
+    - furniture
+    - clothing
+    - books
+    - sports
+    - kids
+    - appliances
+    - construction
+    - garden
+    - other
+
+  # TF-IDF settings
+  max_features: 5000
+  ngram_range: [1, 2]
+  min_confidence: 0.6  # Minimum confidence threshold
+
+# Notifier settings
+notifier:
+  # RSS/Atom
+  rss:
+    enabled: true
+    output_directory: data/rss/
+    base_url: https://yourserver.com/rss/
+    max_items_per_feed: 100
+    update_interval: 3600  # seconds (1 hour)
+
+  # Email
+  email:
+    enabled: false
+    smtp:
+      host: smtp.gmail.com
+      port: 587
+      username: your_email@gmail.com
+      password: your_app_password
+      use_tls: true
+
+    from_email: noreply@yourserver.com
+    from_name: "Classified Ads Notifier"
+
+    # Digest settings
+    digest_frequency: daily  # immediate, daily, weekly
+    max_ads_per_email: 20
+
+# Geolocation settings
+geolocation:
+  enabled: true
+  geocoding_service: nominatim  # nominatim (free) or google
+
+  # Nominatim settings (OpenStreetMap)
+  nominatim:
+    user_agent: classified-ads-indexer
+    timeout: 10
+
+  # Google Geocoding API (uncomment if using)
+  # google:
+  #   api_key: your_api_key
+
+# Data pipeline settings
+pipeline:
+  # Deduplication
+  enable_deduplication: true
+  similarity_threshold: 0.85
+
+  # Text cleaning
+  remove_html: true
+  normalize_whitespace: true
+
+  # Language detection
+  detect_language: false
+  default_language: de  # German
+
+# Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR
+  format: json  # json or text
+  file: logs/classifier.log
+  max_size_mb: 100
+  backup_count: 5
+
+# Scheduler settings
+scheduler:
+  # Crawler schedule (cron format)
+  crawler_schedule: "*/30 * * * *"  # Every 30 minutes
+
+  # RSS generation schedule
+  rss_schedule: "*/60 * * * *"  # Every hour
+
+  # Email digest schedule
+  email_schedule: "0 9 * * *"  # Every day at 9:00 AM
+
+  # Cleanup old ads (days)
+  cleanup_after_days: 30
+  cleanup_schedule: "0 2 * * *"  # Every day at 2:00 AM
+
+# Development settings
+development:
+  debug: false
+  log_sql_queries: false
+  disable_rate_limiting: false
