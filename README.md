@@ -1,190 +1,85 @@
-# Classified Ads Indexer
+# daten8 — Classified Ads Indexer (мониторинг и индексация объявлений)
 
-## Описание проекта
+Проект системы автоматического сбора, классификации, хранения и мониторинга объявлений о бесплатной раздаче вещей с досок объявлений (например, eBay Kleinanzeigen).
 
-**Classified Ads Indexer** — система автоматической индексации, классификации и мониторинга объявлений о бесплатной раздаче вещей с досок объявлений (eBay Kleinanzeigen, Craigslist и др.).
+> **Состояние ветки `main`:** в основной ветке `main` находятся только `README.md` и `LICENSE`. Исходный код на Python, конфигурационные шаблоны и документация проекта расположены в неслитой ветке [`claude/classified-ads-indexer-egVtD`](../../tree/claude/classified-ads-indexer-egVtD).
 
-### Проблема
+## Возможности (по ветке `claude/classified-ads-indexer-egVtD`)
 
-На досках объявлений ежедневно публикуются тысячи объявлений о бесплатной раздаче вещей, но:
-- Трудно найти нужные предметы из-за плохих фильтров и каталогов
-- Невозможно отслеживать новые объявления в реальном времени
-- Отсутствует автоматическая классификация по темам
-- Нет геолокационной фильтрации по городам и районам
-
-### Решение
-
-Система автоматически:
-1. **Собирает** объявления с досок через краулер
-2. **Классифицирует** по категориям (компьютеры, мебель, электроника и т.д.)
-3. **Кластеризует** похожие объявления
-4. **Фильтрует** по городу и району
-5. **Уведомляет** пользователей через RSS/Atom ленты или email
-6. **Предоставляет** минимальные характеристики каждого объявления
-
-## Основные функции
-
-### 1. Сбор данных (Crawler)
-- Периодическое сканирование досок объявлений
-- Извлечение информации: заголовок, описание, местоположение, дата, изображения
-- Обнаружение дубликатов
-- Поддержка множества источников
-
-### 2. Классификация и кластеризация
-- Автоматическое определение категории (компьютеры, мебель, одежда и т.д.)
-- Извлечение ключевых характеристик
-- Группировка похожих объявлений
-- Определение качества и состояния предмета
-
-### 3. Геолокация
-- Парсинг адресов и местоположений
-- Фильтрация по городу
-- Фильтрация по району/округу
-- Расчет расстояния от пользователя
-
-### 4. Система уведомлений
-- RSS/Atom ленты по категориям и местоположениям
-- Email-рассылки с новыми объявлениями
-- Фильтры по ключевым словам
-- Настраиваемые подписки
-
-## Архитектура системы
-
-```
-┌─────────────────┐
-│  Crawler Module │ ──► Сбор объявлений
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Data Pipeline  │ ──► Очистка и нормализация
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Classifier    │ ──► ML-классификация
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│    Database     │ ──► Хранение данных
-└────────┬────────┘
-         │
-         ├──► RSS/Atom Generator
-         ├──► Email Notifier
-         └──► Web API
-```
-
-## Технологический стек
-
-### Backend (простые, проверенные технологии)
-- **Python 3.11+** — основной язык
-- **SQLite / PostgreSQL** — база данных
-- **Beautiful Soup / Scrapy** — парсинг HTML
-- **scikit-learn** — классификация (TF-IDF + классические ML)
-- **feedgen** — генерация RSS/Atom
-- **smtplib** — отправка email
-
-### Почему без нейросетей?
-- Простота развертывания
-- Низкие требования к ресурсам
-- Прозрачность и объяснимость результатов
-- Классические методы (TF-IDF, Naive Bayes, K-Means) отлично работают для этой задачи
+- **Краулер (`src/crawler/`)**: базовый класс `BaseCrawler` (ограничение частоты запросов, повторы с экспоненциальной задержкой, разбор локации) и парсер `EbayCrawler` (BeautifulSoup + `lxml`) для сбора списков и карточек объявлений.
+- **Классификация (`src/classifier/text_classifier.py`)**: класс `TextClassifier` на базе `TfidfVectorizer` и `MultinomialNB` (`scikit-learn`) с порогом уверенности и извлечением признаков (`extract_features`: состояние предмета, бренд, размеры).
+- **Хранение и полнотекстовый поиск (`src/database/`)**: `DatabaseManager` и схема SQLite (`schema.sql`) с таблицами `ads`, `images`, `categories`, `subscriptions`, `notifications`, `crawler_state`, `crawler_logs`, `clusters`, `ad_clusters`, триггерным полнотекстовым индексом `ads_fts` (SQLite FTS5) и представлениями (`active_ads`, `ads_with_location`, `recent_ads`).
+- **Уведомления (`src/notifier/`)**:
+  - `RSSGenerator` (`rss_generator.py`, библиотека `feedgen`) — генерация RSS-лент по категориям, городам и гео-координатам;
+  - `EmailSender` (`email_sender.py`, `smtplib`) — отправка HTML-дайджестов и проверка SMTP-соединения.
 
 ## Структура проекта
 
-```
-classified-ads-indexer/
-├── src/
-│   ├── crawler/          # Модуль сбора объявлений
-│   ├── classifier/       # Классификация и кластеризация
-│   ├── database/         # Работа с БД
-│   ├── notifier/         # RSS/Email уведомления
-│   └── api/              # Web API (опционально)
-├── config/               # Конфигурации
-├── data/                 # Данные и модели
-├── docs/                 # Документация
-├── tests/                # Тесты
-└── scripts/              # Утилиты
+### Ветка `main`
+
+- `LICENSE` — текст лицензии GNU Affero General Public License v3.
+- `README.md` — описание проекта.
+
+### Ветка `claude/classified-ads-indexer-egVtD`
+
+```text
+├── .gitignore
+├── README.md
+├── requirements.txt
+├── config/
+│   ├── config.example.yaml        # Шаблон основных настроек (БД, краулер, ML, RSS, SMTP, геолокация)
+│   ├── sources.yaml               # Настройки источников (ebay_kleinanzeigen активен; craigslist, kleinanzeigen, shpock, nebenan, facebook_marketplace отключены)
+│   └── subscriptions.example.yaml # Шаблон подписок на уведомления
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── IMPLEMENTATION.md
+│   └── PROJECT_OVERVIEW.md
+└── src/
+    ├── __init__.py
+    ├── crawler/
+    │   ├── __init__.py
+    │   ├── base_crawler.py
+    │   └── ebay_crawler.py
+    ├── classifier/
+    │   ├── __init__.py
+    │   └── text_classifier.py
+    ├── database/
+    │   ├── __init__.py
+    │   ├── db_manager.py
+    │   └── schema.sql
+    └── notifier/
+        ├── __init__.py
+        ├── rss_generator.py
+        └── email_sender.py
 ```
 
-## Быстрый старт
+## Технологический стек и установка
+
+По `requirements.txt` из ветки `claude/classified-ads-indexer-egVtD`:
+
+- **Язык:** Python >= 3.11
+- **Библиотеки:** `requests==2.31.0`, `beautifulsoup4==4.12.3`, `lxml==5.1.0`, `scikit-learn==1.4.0`, `numpy==1.26.3`, `joblib==1.3.2`, `feedgen==1.0.0`, `PyYAML==6.0.1`, `python-dotenv==1.0.0`, `python-dateutil==2.8.2`, `loguru==0.7.2`
+- **Тестирование и стиль кода:** `pytest==7.4.4`, `pytest-cov==4.1.0`, `black==24.1.1`, `flake8==7.0.0` (опциональные зависимости в `requirements.txt` закомментированы: `scrapy`, `spacy`, `langdetect`, `psycopg2-binary`, `alembic`, `geopy`, `fastapi`, `uvicorn`, `pydantic`, `mypy`).
+
+Подготовка окружения на ветке `claude/classified-ads-indexer-egVtD`:
 
 ```bash
-# Клонирование репозитория
-git clone <repository-url>
-cd classified-ads-indexer
-
-# Создание виртуального окружения
+git checkout claude/classified-ads-indexer-egVtD
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# или
-venv\Scripts\activate  # Windows
-
-# Установка зависимостей
+# Linux/Mac: source venv/bin/activate
+# Windows:   venv\Scripts\activate
 pip install -r requirements.txt
-
-# Настройка конфигурации
 cp config/config.example.yaml config/config.yaml
-# Отредактируйте config.yaml под ваши нужды
-
-# Запуск краулера
-python -m src.crawler.run
-
-# Генерация RSS лент
-python -m src.notifier.generate_rss
 ```
 
-## Примеры использования
+> **Примечание:** в текущем составе ветки `claude/classified-ads-indexer-egVtD` реализованы модули библиотеки (`src/crawler`, `src/classifier`, `src/database`, `src/notifier`), а отдельные CLI-точки входа (такие как `src/crawler/run.py` или `src/notifier/generate_rss.py`, упоминаемые в черновике README ветки) и каталог `tests/` пока не созданы.
 
-### Подписка на RSS ленту
+## Ветки репозитория
 
-```
-# Все бесплатные компьютеры в Берлине
-https://yourserver.com/rss/berlin/computers
-
-# Мебель в районе Kreuzberg
-https://yourserver.com/rss/berlin/kreuzberg/furniture
-
-# Все объявления по ключевому слову "принтер"
-https://yourserver.com/rss/search?q=printer&location=munich
-```
-
-### Email уведомления
-
-Настройте фильтры в `config/subscriptions.yaml`:
-
-```yaml
-subscriptions:
-  - email: user@example.com
-    categories: [computers, electronics]
-    location: Berlin
-    keywords: [laptop, monitor, printer]
-    radius_km: 10
-```
-
-## Преимущества системы
-
-1. **Автономность** — работает без интернет-сервисов третьих лиц
-2. **Простота** — использует классические, проверенные технологии
-3. **Эффективность** — низкие требования к ресурсам
-4. **Гибкость** — легко адаптируется под новые источники
-5. **Приватность** — все данные хранятся локально
-6. **RSS/Atom** — стандартный протокол, работает с любым RSS-ридером
-
-## Планы развития
-
-- [ ] Поддержка множественных источников (eBay, Craigslist, etc.)
-- [ ] Web-интерфейс для управления подписками
-- [ ] Telegram/WhatsApp боты для уведомлений
-- [ ] Расширенная аналитика (статистика по категориям, трендам)
-- [ ] API для интеграции с другими сервисами
-- [ ] Мобильное приложение
+- `main` — защищённая основная ветка (`LICENSE`, `README.md`).
+- `claude/classified-ads-indexer-egVtD` — неслитая ветка с архитектурой, конфигурациями (`config/`), документацией (`docs/`) и Python-модулями (`src/`).
+- `codex/readme-overview-20261118` — неслитая ветка с открытым draft PR [#1](../../pull/1) («Add concise project README»), содержащая краткую заглушку README по описанию репозитория.
 
 ## Лицензия
 
-MIT License
-
-## Авторы
-
-Проект разработан для решения проблемы эффективного мониторинга бесплатных объявлений.
+В ветке `main` проект распространяется под лицензией **GNU Affero General Public License v3** (см. файл `LICENSE`). В `README.md` ветки `claude/classified-ads-indexer-egVtD` упоминалась лицензия MIT.
